@@ -15,6 +15,7 @@ export default function LiveQueueStatus() {
 
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [pollingActive, setPollingActive] = useState(true);
 
@@ -23,8 +24,10 @@ export default function LiveQueueStatus() {
   const [mockTotal, setMockTotal] = useState(7);
   const [mockServing, setMockServing] = useState(false);
 
-  const fetchStatus = async () => {
+  const fetchStatus = async (showLoading = false) => {
     if (isMock) {
+      if (showLoading) setLoading(true);
+      else setRefreshing(true);
       // Simulate offline demo behavior
       setTimeout(() => {
         setStatus({
@@ -38,11 +41,14 @@ export default function LiveQueueStatus() {
           averageServiceTime: 12
         });
         setLoading(false);
+        setRefreshing(false);
       }, 300);
       return;
     }
 
     try {
+      if (showLoading) setLoading(true);
+      else setRefreshing(true);
       const response = await axios.get(`${API_BASE}/queues/${queueId}/status`, {
         params: { userId }
       });
@@ -63,16 +69,17 @@ export default function LiveQueueStatus() {
       });
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   useEffect(() => {
-    fetchStatus();
+    fetchStatus(true);
 
     // Setup polling every 5 seconds
     const interval = setInterval(() => {
       if (pollingActive) {
-        fetchStatus();
+        fetchStatus(false);
       }
     }, 5000);
 
@@ -105,16 +112,27 @@ export default function LiveQueueStatus() {
         return;
       }
 
+      if (!userId) {
+        localStorage.removeItem(`joined_queue_${queueId}`);
+        navigate('/');
+        return;
+      }
+
       try {
+        setLoading(true);
         await axios.delete(`${API_BASE}/queues/${queueId}/leave`, {
+          params: { userId },
           data: { userId }
         });
         localStorage.removeItem(`joined_queue_${queueId}`);
         navigate('/');
       } catch (err) {
         console.error('Failed to leave queue:', err.message);
+        localStorage.removeItem(`joined_queue_${queueId}`);
         alert('Left the queue.');
         navigate('/');
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -124,6 +142,22 @@ export default function LiveQueueStatus() {
       <div className="loading-container">
         <div className="loading-spinner"></div>
         <p>Loading your ticket details...</p>
+      </div>
+    );
+  }
+
+  const notInQueue = status && !status.inQueue && !status.isNowServing;
+
+  if (notInQueue) {
+    return (
+      <div className="app-container">
+        <div className="card" style={{ textAlign: 'center' }}>
+          <h2 style={{ color: 'var(--warning)', marginBottom: '8px' }}>Not in Queue</h2>
+          <p>You are no longer in this virtual queue (you may have left or been served).</p>
+          <button className="btn btn-primary" style={{ marginTop: '12px' }} onClick={() => navigate('/')}>
+            Back to Home
+          </button>
+        </div>
       </div>
     );
   }
@@ -194,10 +228,11 @@ export default function LiveQueueStatus() {
         )}
 
         <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-          <button className="btn btn-secondary" onClick={fetchStatus}>
-            <RefreshCw size={16} /> Refresh
+          <button className="btn btn-secondary" onClick={() => fetchStatus(false)} disabled={refreshing}>
+            <RefreshCw size={16} style={{ animation: refreshing ? "spin 1s linear infinite" : "none" }} />
+            {refreshing ? 'Refreshing...' : 'Refresh'}
           </button>
-          <button className="btn btn-danger" onClick={handleLeaveQueue}>
+          <button className="btn btn-danger" onClick={handleLeaveQueue} disabled={refreshing}>
             <LogOut size={16} /> Leave Line
           </button>
         </div>

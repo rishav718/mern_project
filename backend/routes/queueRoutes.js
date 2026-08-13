@@ -19,7 +19,7 @@ router.get('/venues', async (req, res) => {
 // @desc    Join a specific queue
 router.post('/:id/join', async (req, res) => {
   try {
-    let { userId, name, email } = req.body;
+    let { userId, name, email } = req.body || {};
     let user;
 
     if (userId) {
@@ -49,7 +49,7 @@ router.post('/:id/join', async (req, res) => {
 
     // Check if user is already in the queue
     const isAlreadyInQueue = queue.queue.some(
-      (item) => item.userId.toString() === userId.toString()
+      (item) => item && item.userId && item.userId.toString() === userId.toString()
     );
     if (isAlreadyInQueue) {
       return res.status(400).json({ message: 'User is already in this queue' });
@@ -115,7 +115,7 @@ router.get('/:id/status', async (req, res) => {
     if (userId) {
       // Find user position
       const userIndex = queue.queue.findIndex(
-        (item) => item.userId.toString() === userId.toString()
+        (item) => item && item.userId && item.userId.toString() === userId.toString()
       );
 
       if (userIndex !== -1) {
@@ -154,7 +154,7 @@ router.get('/:id/status', async (req, res) => {
 // @desc    Leave a queue voluntarily
 router.delete('/:id/leave', async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = (req.body && req.body.userId) || (req.query && req.query.userId);
     if (!userId) {
       return res.status(400).json({ message: 'userId is required' });
     }
@@ -166,7 +166,7 @@ router.delete('/:id/leave', async (req, res) => {
 
     // Check if user exists in the queue array
     const userIndex = queue.queue.findIndex(
-      (item) => item.userId.toString() === userId.toString()
+      (item) => item && item.userId && item.userId.toString() === userId.toString()
     );
 
     if (userIndex === -1) {
@@ -194,6 +194,7 @@ router.delete('/:id/leave', async (req, res) => {
       queue
     });
   } catch (error) {
+    console.error('Error in DELETE /leave:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

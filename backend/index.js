@@ -10,6 +10,17 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use((req, res, next) => {
+  console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
+  if (req.body && typeof req.body === 'object' && Object.keys(req.body).length) {
+    console.log('  Body:', req.body);
+  }
+  if (req.query && typeof req.query === 'object' && Object.keys(req.query).length) {
+    console.log('  Query:', req.query);
+  }
+  next();
+});
+
 // Import Routes
 const queueRoutes = require('./routes/queueRoutes');
 const adminRoutes = require('./routes/adminRoutes');

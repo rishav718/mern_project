@@ -48,6 +48,7 @@ router.patch('/queues/:id/serve', async (req, res) => {
       queue
     });
   } catch (error) {
+    console.error('Error in PATCH /serve:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
