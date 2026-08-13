@@ -38,14 +38,31 @@ const MOCK_VENUES = [
 
 export default function HomePage() {
   const [venues, setVenues] = useState(MOCK_VENUES);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If backend connection is live, we could fetch. Since we only implemented specific endpoints,
-    // we use our rich mock venues lists but synchronize queue lengths with backend status check if available.
-    // This provides a seamless development experience!
+    axios.get(`${API_BASE}/queues/venues`)
+      .then(response => {
+        if (response.data && response.data.length > 0) {
+          setVenues(response.data);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.warn('Failed to fetch live venues from API. Using local mock fallbacks:', err.message);
+        setLoading(false);
+      });
   }, []);
+
+  if (loading) {
+    return (
+      <div className="app-container" style={{ justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <div className="loading-spinner"></div>
+        <p style={{ marginTop: '12px' }}>Connecting to virtual queues...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">

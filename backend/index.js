@@ -32,11 +32,14 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
+const seedDatabase = require('./seeder');
+
 // Connect to MongoDB
 mongoose
   .connect(MONGO_URI)
-  .then(() => {
+  .then(async () => {
     console.log('Successfully connected to MongoDB.');
+    await seedDatabase();
   })
   .catch((err) => {
     console.error('Database connection error:', err.message);

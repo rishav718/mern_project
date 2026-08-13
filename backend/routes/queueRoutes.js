@@ -2,6 +2,18 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Queue = require('../models/Queue');
+const Venue = require('../models/Venue');
+
+// @route   GET /api/queues/venues
+// @desc    Get all venues with populated queues
+router.get('/venues', async (req, res) => {
+  try {
+    const venues = await Venue.find().populate('queues');
+    res.status(200).json(venues);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 
 // @route   POST /api/queues/:id/join
 // @desc    Join a specific queue
