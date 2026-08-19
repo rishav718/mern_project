@@ -30,6 +30,8 @@ function App() {
         <div style={{ display: 'flex', gap: '16px', fontSize: '0.9rem', fontWeight: '500' }}>
           <Link to="/" style={{ color: 'var(--text-secondary)' }}>Home</Link>
           <span style={{ color: 'rgba(255,255,255,0.1)' }}>|</span>
+          <Link to="/admin" style={{ color: 'var(--text-secondary)' }}>Admin</Link>
+          <span style={{ color: 'rgba(255,255,255,0.1)' }}>|</span>
           <span style={{ color: 'var(--text-muted)' }}>v1.0.0</span>
         </div>
       </header>
@@ -39,6 +41,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/venues/:venueId/queues/:queueId/join" element={<QueueJoinPage />} />
         <Route path="/queues/:queueId/status" element={<LiveQueueStatus />} />
+        <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/queues/:queueId" element={<AdminDashboard />} />
       </Routes>
     </Router>

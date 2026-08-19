@@ -3,6 +3,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
+// Disable Mongoose buffering globally so database operations fail-fast when offline
+mongoose.set('bufferCommands', false);
+
 const app = express();
 
 // Middleware
